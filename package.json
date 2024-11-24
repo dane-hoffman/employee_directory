@@ -2,4 +2,14 @@
   "dependencies": {
     "mysql": "^2.18.1"
   }
+  {
+    "name": "MRH_Employee_Directory",
+    "scripts": {
+      "install": "yarn install",
+      "build": "yarn build",
+      "run": "yarn run"
+      
+    }
+  }
+
 }
