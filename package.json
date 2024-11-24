@@ -1,15 +1,14 @@
 {
+  "name": "mrh_employee_directory",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
   "dependencies": {
     "mysql": "^2.18.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
-  {
-    "name": "MRH_Employee_Directory",
-    "scripts": {
-      "install": "yarn install",
-      "build": "yarn build",
-      "run": "yarn run"
-      
-    }
-  }
-
 }
+
