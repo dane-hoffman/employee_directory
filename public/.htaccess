@@ -1,0 +1,12 @@
+# public/.htaccess
+Options -Indexes
+RewriteEngine On
+
+# Protect against accessing files outside public directory
+RewriteRule ^includes/ - [F,L]
+RewriteRule ^\.htaccess$ - [F,L]
+
+# Handle PHP files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
