@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone_number = $_POST['phone_number'];
 
     $sql = "INSERT INTO employees (first_name, last_name, department, job_role, phone_number) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
+    //$stmt = $pdo->prepare($sql);
     $stmt->execute([$first_name, $last_name, $department, $job_role, $phone_number]);
 
     $message = "Employee added successfully!";
