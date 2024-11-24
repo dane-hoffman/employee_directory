@@ -7,17 +7,16 @@ RUN apt-get update && apt-get install -y libpq-dev \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Copy application files
-COPY . /var/www/html/
-
 # Set the working directory
 WORKDIR /var/www/html
 
-# Copy public files to Apache web root
-RUN cp -r public/* /var/www/html/ && \
-    rm -rf public
+# Copy the entire project
+COPY . .
 
-# Apache configuration to secure includes directory
+# Configure Apache DocumentRoot to point to the public directory
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Secure includes directory
 RUN echo '<Directory "/var/www/html/includes">\n\
     Require all denied\n\
 </Directory>' >> /etc/apache2/apache2.conf
