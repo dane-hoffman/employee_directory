@@ -4,11 +4,17 @@ require_once '../includes/db_connection.php';
 $search_results = [];
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['search'])) {
-    $search = '%' . $_GET['search'] . '%';
-    $sql = "SELECT * FROM employees WHERE first_name LIKE ? OR last_name LIKE ? OR department LIKE ? OR job_role LIKE ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$search, $search, $search, $search]);
-    $search_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $pdo = getDBConnection(); // Get the PDO connection
+        $search = '%' . $_GET['search'] . '%';
+        $sql = "SELECT * FROM employees WHERE first_name LIKE ? OR last_name LIKE ? OR department LIKE ? OR job_role LIKE ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$search, $search, $search, $search]);
+        $search_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Search error: " . $e->getMessage());
+        $error_message = "An error occurred while searching. Please try again later.";
+    }
 }
 ?>
 
@@ -39,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['search'])) {
             <input type="text" id="search" name="search" required>
             <input type="submit" value="Search">
         </form>
+
+        <?php if (isset($error_message)): ?>
+            <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
+        <?php endif; ?>
 
         <?php if (!empty($search_results)): ?>
             <table>
