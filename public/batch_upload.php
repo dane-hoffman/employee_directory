@@ -20,16 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['csv_file'])) {
         $handle = fopen($file['tmp_name'], 'r');
         
         // Skip the header row if it exists
-        fgetcsv($handle);
+        $header = fgetcsv($handle);
 
         // Prepare the SQL statement for batch insertion
         $sql = "INSERT INTO employees (first_name, last_name, department, job_role, phone_number) 
-                VALUES (?, ?, ?, ?, ?)";
+                VALUES (:first_name, :last_name, :department, :job_role, :phone_number)";
         $stmt = $pdo->prepare($sql);
 
         // Counter for successful and failed imports
         $successCount = 0;
         $failedCount = 0;
+        $errorDetails = [];
 
         // Process each row
         while (($data = fgetcsv($handle)) !== FALSE) {
@@ -43,27 +44,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['csv_file'])) {
                     $job_role = htmlspecialchars(trim($data[3]));
                     $phone_number = htmlspecialchars(trim($data[4]));
 
+                    // Bind parameters for more detailed error tracking
+                    $stmt->bindParam(':first_name', $first_name);
+                    $stmt->bindParam(':last_name', $last_name);
+                    $stmt->bindParam(':department', $department);
+                    $stmt->bindParam(':job_role', $job_role);
+                    $stmt->bindParam(':phone_number', $phone_number);
+
                     // Execute the statement with the provided data
-                    $stmt->execute([$first_name, $last_name, $department, $job_role, $phone_number]);
-                    $successCount++;
+                    $result = $stmt->execute();
+
+                    if ($result) {
+                        $successCount++;
+                    } else {
+                        $failedCount++;
+                        $errorDetails[] = "Row failed: " . implode(', ', $data);
+                    }
                 } catch (PDOException $e) {
                     $failedCount++;
-                    error_log("Error inserting row: " . $e->getMessage());
+                    $errorDetails[] = "Error inserting row: " . $e->getMessage() . " - Data: " . implode(', ', $data);
+                    error_log("CSV Import Error: " . $e->getMessage());
                 }
             } else {
                 $failedCount++;
+                $errorDetails[] = "Incomplete row: " . implode(', ', $data);
             }
         }
 
         fclose($handle);
 
         // Prepare success message
-        $message = "CSV Import Complete. 
-                    Successful imports: $successCount. 
-                    Failed imports: $failedCount.";
+        $message = "CSV Import Report:\n";
+        $message .= "Successful imports: $successCount\n";
+        $message .= "Failed imports: $failedCount\n";
+        
+        // Add error details if any failed imports
+        if (!empty($errorDetails)) {
+            $message .= "Error Details:\n" . implode("\n", array_slice($errorDetails, 0, 10));
+        }
 
     } catch (Exception $e) {
         $message = "Error: " . $e->getMessage();
+        error_log("CSV Import Exception: " . $e->getMessage());
     }
 }
 ?>
@@ -87,6 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['csv_file'])) {
             margin: 15px 0;
             padding: 10px;
             border-radius: 5px;
+            white-space: pre-wrap;
         }
         .success { background-color: #dff0d8; color: #3c763d; }
         .error { background-color: #f2dede; color: #a94442; }
