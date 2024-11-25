@@ -109,6 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
+
+// Ensure max file upload size is visible to the user
+$max_upload = (int)(ini_get('upload_max_filesize'));
+$max_post = (int)(ini_get('post_max_size'));
+$memory_limit = (int)(ini_get('memory_limit'));
+$max_filesize = min($max_upload, $max_post, $memory_limit);
 ?>
 
 <!DOCTYPE html>
@@ -118,6 +124,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Employee</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Optional: JavaScript to validate file selection
+        function validateFileUpload() {
+            var fileInput = document.getElementById('csv_file');
+            var filePath = fileInput.value;
+            var allowedExtensions = /(\.csv)$/i;
+            
+            if (!allowedExtensions.exec(filePath)) {
+                alert('Please upload a CSV file only.');
+                fileInput.value = '';
+                return false;
+            }
+            
+            return true;
+        }
+    </script>
 </head>
 <body>
 <header>
@@ -162,9 +184,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="form-section">
         <h2>Bulk Import from CSV</h2>
-        <form action="add_employee.php" method="post" enctype="multipart/form-data">
-            <label for="csv_file">CSV File:</label>
-            <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+        <form action="add_employee.php" method="post" enctype="multipart/form-data" onsubmit="return validateFileUpload()">
+            <label for="csv_file">CSV File (Max Size: <?php echo $max_filesize; ?>MB):</label>
+            <input type="file" 
+                   id="csv_file" 
+                   name="csv_file" 
+                   accept=".csv" 
+                   required 
+                   onchange="validateFileUpload()">
 
             <p class="csv-instructions">
                 CSV File Format: 
