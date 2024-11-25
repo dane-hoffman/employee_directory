@@ -6,8 +6,8 @@ $search_results = [];
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
     $sql = "SELECT * FROM employees WHERE first_name LIKE ? OR last_name LIKE ? OR department LIKE ? OR job_role LIKE ?";
-    //$stmt = $pdo->prepare($sql);
-    //$stmt->execute([$search, $search, $search, $search]);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$search, $search, $search, $search]);
     $search_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
